@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Kill any existing VNC server
 vncserver -kill :1 2>/dev/null || echo "No VNC server running on display :1"
 

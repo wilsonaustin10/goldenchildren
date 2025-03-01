@@ -61,23 +61,29 @@ class IntentDetector:
         logger.info(f"Intent detector initialized with {len(intents)} intents")
         
         
-        llm = ChatGroq(
-            model="llama-3.3-70b-versatile",
-            temperature=0,
-        )
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", "You are a helpful assistant"),
-                ("human", "{input}"),
-                ("placeholder", "{agent_scratchpad}"),
-            ]
+        # llm = ChatGroq(
+        #     # model="llama-3.3-70b-versatile",
+        #     model="llama-3.1-8b-instant",
+        #     # temperature=0,
+        # )
+        llm = ChatOpenAI(
+            model=model_name,
         )
         class forward_prompt(BaseModel):
-            a: int = Field(..., description="Finalized prompt to be sent to LLM")
-            
-        tools = [forward_prompt]
-        agent_executor = create_react_agent(llm, tools=tools)
-        self.agent_executor = agent_executor
+            prompt: str = Field(
+                description="Prompt to send to LLM for intent analysis."  # Shortened description
+            )
+        
+        tools = []
+        
+        class Response(BaseModel):
+            """Response."""
+
+            needs_more_info: str = Field(description="Whether the model needs more info before making an action")
+            response: str = Field(description="The response to the user")
+
+        agent_executor = llm.bind_tools(tools)
+        self.prompt_refiner = agent_executor
     
     def _create_intent_collection_prompt(self, message: str, history: List[dict], target_llm) -> str:
         """
@@ -93,35 +99,51 @@ class IntentDetector:
         """
         try:
             # Run the agent executor
-            response = self.agent_executor.invoke({
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": f"""
+            messages = [
+                ("system","""You are a helpful AI assistant that collects information before acting. 
+                        Analyze the query and respond in JSON format with either a clarifying question or a final prompt.
+                        Format: {"needs_more_info": boolean, "response": string}
+                        """),
+                ("human", f"""
                             History: {history}
                             Current query: {message}
                             
-                            Analyze this query and respond with a JSON:
-                            {{"needs_more_info": true, "question": "your clarifying question"}}
+                            Analyze this query and respond in a strictly JSON format (i.e. **do not output markdown**):
+                            {{"needs_more_info": true, "response": "your clarifying question"}}
                             OR
-                            {{"needs_more_info": false, "final_prompt": "your generated prompt"}}
-                            
-                            If the user asks for you to fill up the rest or to stop asking questions, just autocomplete the rest of the details because the user may just want to see an initial draft or how well you can perform
-                        """
-                    }
-                ]
-            })
+                            {{"needs_more_info": false, "response": "your generated prompt"}}
+                        """)
+            ]
+            response = self.prompt_refiner.invoke(messages)
             
             # Parse the response
             try:
-                output = response["messages"][-1].content
+                print("response", response)
+                output = response.content
+                cleaned_response = output.strip()
+                if cleaned_response.startswith("```json"):
+                    cleaned_response = cleaned_response[7:-3]  # Remove ```json and ``` markers
+                
                 result = json.loads(output)
                 print(result, result.get("needs_more_info", False))
+                
                 if result.get("needs_more_info", False):
-                    return result["question"]
+                    return result["response"]
                 else:
                     # Process with target LLM
-                    final_response = target_llm.invoke(result["final_prompt"])
+                    final_prompt = f"""Based on the following user request, create a concise summary of the essential requirements and intended actions:
+
+User request: {result["response"]}
+
+Focus on extracting:
+1. The main objective
+2. Key requirements
+3. Any specific constraints or preferences"""
+            
+                    messages = [
+                        ("human", final_prompt)
+                    ]
+                    final_response = self.prompt_refiner.invoke(messages)
                     return final_response.content
                     
             except json.JSONDecodeError:

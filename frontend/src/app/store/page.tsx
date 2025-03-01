@@ -1,9 +1,9 @@
 import React from 'react'
 import AgentCard from '../agent-card'
-import sage from '../../public/icons/sage.png';
-import checkbox from '../../public/icons/checkbox.png';
-import scout from '../../public/icons/scout.png';
-import buddy from '../../public/icons/buddy.png';
+import sage from '../../../public/icons/sage.png';
+import checkbox from '../../../public/icons/checkbox.png';
+import scout from '../../../public/icons/scout.png';
+import buddy from '../../../public/icons/buddy.png';
 
 export default function Store() {
   return (

@@ -185,7 +185,7 @@ async def chat_endpoint(request: Request):
         chat_input = ChatMessage(**data)
         
         # Initialize your models
-        intent_detector = IntentDetector(EXAMPLE_INTENTS)
+        intent_detector = IntentDetector(EXAMPLE_INTENTS, model_name="gpt-4o-mini")
         target_llm = ChatOpenAI(
             model_name="gpt-4o-mini",
             temperature=0.7,
@@ -195,7 +195,7 @@ async def chat_endpoint(request: Request):
         response = intent_detector._create_intent_collection_prompt(
             message=chat_input.message,
             history=chat_input.history,
-            target_llm=target_llm
+            target_llm=target_llm,
         )
         
         # Return the response

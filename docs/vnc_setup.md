@@ -3,8 +3,8 @@
 This document outlines the VNC server setup on our system for remote desktop access.
 
 ## Installed Components
-- TigerVNC Server
-- noVNC (web-based VNC client)
+- TigerVNC Server - brew install tiger-vnc (for Mac users)
+- noVNC (web-based VNC client)a
 - Firefox ESR browser
 - XFCE desktop environment
 
@@ -14,6 +14,9 @@ This document outlines the VNC server setup on our system for remote desktop acc
 - Using XFCE as the desktop environment
 
 ## How to Start/Restart the VNC Server
+
+`gcloud compute ssh --project=golden-children --zone=us-south1-c wilson_austin10@golden-children -- -L 5901:localhost:5901 -L 6080:localhost:6080` - ssh into the VM server to start/restart the VNC server
+
 ```bash
 # Kill any existing VNC server
 vncserver -kill :1
