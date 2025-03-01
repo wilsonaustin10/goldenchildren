@@ -59,12 +59,6 @@ class IntentDetector:
         
         logger.info(f"Intent detector initialized with {len(intents)} intents")
         
-        
-        # llm = ChatGroq(
-        #     # model="llama-3.3-70b-versatile",
-        #     model="llama-3.1-8b-instant",
-        #     # temperature=0,
-        # )
         llm = ChatOpenAI(
             model=model_name,
         )
@@ -117,7 +111,6 @@ class IntentDetector:
             
             # Parse the response
             try:
-                print("response", response)
                 output = response.content
                 cleaned_response = output.strip()
                 if cleaned_response.startswith("```json"):

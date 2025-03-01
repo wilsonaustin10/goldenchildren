@@ -4,6 +4,7 @@ import Markdown from "react-markdown";
 import { Message, Sender } from "../types/Message";
 import remarkGfm from 'remark-gfm'
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 type P = {
     message: Message;
@@ -23,10 +24,11 @@ export default function ChatMessage({message}: P) {
           
           {/* {!message.needsMoreInfo  */}
           {message.needsMoreInfo != null && !message.needsMoreInfo 
-            ? <div>
-                <p>Is this what you meant?</p>
+            ? <div className="">
+                <hr className="my-2"/>
+                <p className="mb-2">Is this what you meant?</p>
                 <div className="flex gap-x-2">
-                  <button className="cursor-pointer rounded px-4 py-2 bg-neutral-600 text-white" type="button">Yes</button>
+                  <Link href="/chat"><button className="cursor-pointer rounded px-4 py-2 bg-neutral-600 text-white" type="button">Yes</button></Link>
                   <button className="cursor-pointer rounded px-4 py-2 bg-neutral-600 text-white" type="button">No</button>
                 </div>
               </div>

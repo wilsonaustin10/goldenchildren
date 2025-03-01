@@ -122,7 +122,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 # Initialize your models
                 intent_detector = IntentDetector(EXAMPLE_INTENTS)
                 target_llm = ChatOpenAI(
-                    model_name="gpt-4o-mini",
+                    model_name="gpt-4o",
                     temperature=0.7,
                 )
 
@@ -200,7 +200,7 @@ async def chat_endpoint(request: Request):
         # Initialize your models
         intent_detector = IntentDetector(EXAMPLE_INTENTS, model_name="gpt-4o-mini")
         target_llm = ChatOpenAI(
-            model_name="gpt-4o-mini",
+            model_name="gpt-4o",
             temperature=0.7,
         )
 
@@ -234,7 +234,7 @@ async def chat_browser_use_endpoint(request: Request):
         # Initialize your models
         intent_detector = IntentDetector(EXAMPLE_INTENTS)
         target_llm = ChatOpenAI(
-            model_name="gpt-4o-mini",
+            model_name="gpt-4o",
             temperature=0.7,
         )
 
@@ -252,6 +252,7 @@ async def chat_browser_use_endpoint(request: Request):
         browser_use_plan = None
         if not needs_more_info:
             # Generate BrowserUse function calls from the response
+            print("RESPINSE", response)
             plan = await default_generator.generate_function_calls(str(response))
             browser_use_plan = plan.model_dump()
         
