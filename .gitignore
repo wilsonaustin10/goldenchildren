@@ -1,1 +1,23 @@
 goldenvenv/*
+# VNC specific files
+.vnc/
+.Xauthority
+.Xresources
+nohup.out
+*.pem
+
+# User specific files
+.bash_history
+.bash_logout
+.bashrc
+.cache/
+.config/
+.mozilla/
+.pki/
+.profile
+.ssh/
+.xsession-errors
+
+# Operating system files
+.DS_Store
+Thumbs.db
