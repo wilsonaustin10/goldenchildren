@@ -96,6 +96,30 @@ export function useChatbot() {
                 if (res.body === null) {
                     throw new Error("Failed to get response from server");
                 }
+            if (res.body === null) return console.error("FAILED");
+
+            const data = await res.json();
+
+            if (data.needs_more_info) {
+                setMessages(prev => [...prev, { 
+                    text: data.content, 
+                    sender: Sender.AI,
+                    needsMoreInfo: data.needs_more_info,
+                }]);
+            } else {
+                setMessages(prev => [...prev, { 
+                    text: `${data.content}`, 
+                    sender: Sender.AI,
+                    needsMoreInfo: data.needs_more_info,
+                }]);
+            }
+            
+            // setMessages(prev => {
+            //         const currentMessage: Message = {text: aiMessage, sender: Sender.AI};
+            //     return [...prev, currentMessage];
+            // });
+            // Reset the current mesage to hide it
+            // setCurrMessage(_ => DEFAULT_MESSAGE);
 
                 const data = await res.json();
                 

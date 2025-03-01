@@ -6,4 +6,5 @@ export enum Sender {
 export type Message = {
     text: string;
     sender: Sender;
+    needsMoreInfo?: boolean
 };

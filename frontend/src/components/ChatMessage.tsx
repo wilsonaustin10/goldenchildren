@@ -20,6 +20,16 @@ export default function ChatMessage({message}: P) {
           <Markdown remarkPlugins={[remarkGfm]}>
           {message.text}
           </Markdown>
+          {!message.needsMoreInfo 
+            ? <div>
+                <p>Is this what you meant?</p>
+                <div className="flex gap-x-2">
+                  <button className="rounded p-4 bg-neutral-600" type="button">Yes</button>
+                  <button className="rounded p-4 bg-neutral-600" type="button">No</button>
+                </div>
+              </div>
+            : null
+          }
       </div>
     )
 }

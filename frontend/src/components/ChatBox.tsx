@@ -37,8 +37,8 @@ export default function ChatBox(props: P) {
             <div className={`flex flex-col space-y-2 py-2 min-h-[200px] ${className ?? ""} overflow-y h-full mb-4 rounded overflow-y-auto overflow-x-hidden`}>
                 {messages.map((message, index) => (
                     <ChatMessage 
-                    key={index}
-                    message={message} />
+                        key={index}
+                        message={message} />
                 ))}
                 {/* Hide the currMessage if its text is null */}
                 {currMessage.text ? <ChatMessage 
