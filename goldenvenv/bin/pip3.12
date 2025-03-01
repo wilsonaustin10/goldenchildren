@@ -1,4 +1,4 @@
-#!/Users/rohit/Documents/goldenchildren/goldenenv/bin/python3.12
+#!/Users/rohit/Documents/goldenchildren/goldenvenv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys

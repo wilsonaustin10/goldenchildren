@@ -97,10 +97,14 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 try:
                     plan = await default_generator.generate_function_calls(action_description)
                     
+                    # Generate step-by-step plan
+                    step_by_step_plan = plan.get_step_by_step_plan()
+                    
                     # Send the plan back to the client
                     await websocket.send_json({
                         "type": "browser_use_plan",
-                        "plan": plan.model_dump()
+                        "plan": plan.model_dump(),
+                        "step_by_step_plan": step_by_step_plan
                     })
                     
                 except Exception as e:

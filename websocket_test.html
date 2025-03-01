@@ -126,7 +126,19 @@
                 
                 if (data.type === 'browser_use_plan') {
                     // Handle BrowserUse plan response
-                    document.getElementById('actionResponse').textContent = JSON.stringify(data.plan, null, 2);
+                    const responseElement = document.getElementById('actionResponse');
+                    
+                    // Display the step-by-step plan if available
+                    if (data.step_by_step_plan) {
+                        responseElement.innerHTML = '<h3>Step-by-Step Plan:</h3>' + 
+                            '<pre style="white-space: pre-wrap; background-color: #f5f5f5; padding: 10px; border-radius: 5px;">' + 
+                            data.step_by_step_plan + 
+                            '</pre>' +
+                            '<h3>Raw Plan Data:</h3>' +
+                            '<pre>' + JSON.stringify(data.plan, null, 2) + '</pre>';
+                    } else {
+                        responseElement.textContent = JSON.stringify(data.plan, null, 2);
+                    }
                 } else if (data.type === 'chat_response') {
                     // Handle chat response
                     const responseText = `Message: ${data.content}\n\nNeeds more info: ${data.needs_more_info}`;
