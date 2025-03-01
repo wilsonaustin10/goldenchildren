@@ -1,58 +1,41 @@
-import React from 'react'
-import AgentCard from './agent-card'
-import sage from '../../public/icons/sage.png';
-import checkbox from '../../public/icons/checkbox.png';
-import scout from '../../public/icons/scout.png';
-import buddy from '../../public/icons/buddy.png';
+'use client';
+
+import ChatBox from "@/components/ChatBox";
+import { useChatbot } from "@/hooks/useChatbot";
+import Head from "next/head";
 
 export default function Home() {
-  return (
-    <div className=' bg-neutral-900 min-h-screen px-8 pb-16'>
-        <div className='flex flex-col py-16'>
-            <h1 className='text-5xl text-center font-bold text-white'>Golden Children - Store</h1>
-            <h3 className='text-lg text-gray-500 text-center'>In this section you will find a high level overview of all the agents available on Golden Children</h3>
-        </div>
-        <section className=''>
-            <h2 className='text-2xl font-bold text-white mb-4'>Agents</h2>
-            <div className='grid grid-cols-2 gap-4'>
-                <div className='col-span-1 '>
-                    <div className='p-4 h-full'>
-                        <AgentCard name="SageGPT" 
-                            description="A knowledge-driven AI that provides expert-level answers, research summaries, and fact-checked insights for professionals, students, and curious minds." 
-                            image={sage}
-                            href={"/chat"}
-                            />
-                    </div>
-                </div>
-                <div className='col-span-1'>
-                    <div className='p-4 h-full'>
-                    <AgentCard name="ShopScout" 
-                            description="A shopping assistant that finds the best deals, compares product reviews, and recommends purchases based on user preferences and budget." 
-                            image={scout}
-                            href={"/chat"}
-                            />
-                    </div>
-                </div>
-                <div className='col-span-1'>
-                    <div className='p-4 h-full'>
-                    <AgentCard name="TaskMate" 
-                            description="A productivity assistant that helps users manage schedules, automate repetitive tasks, and optimize workflow efficiency through smart reminders and integrations." 
-                            image={checkbox}
-                            href={"/chat"}
-                            />
-                    </div>
-                </div>
-                <div className='col-span-1'>
-                    <div className='p-4 h-full'>
-                    <AgentCard name="ChatBuddy" 
-                        description="A conversational AI that engages in casual discussions, provides emotional support, and offers personalized entertainment recommendations." 
-                        image={buddy}
-                        href={"/chat"}
-                        />
-                    </div>
-                </div>
+    const { messages, currMessage, sendMessage, isGenerating } = useChatbot();
+    return (
+        <div className="flex flex-col items-center justify-between min-h-screen bg-black relative overflow-hidden">
+            <Head>
+                <title>Create Your Agent</title>
+                <meta name="description" content="Create your own agent" />
+                <link rel="icon" href="/favicon.ico" />
+            </Head>
+
+            {/* Background effects positioned behind content */}
+            <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:40px_40px] pointer-events-none" />
+            <div className="absolute h-40 w-40 rounded-full bg-purple-600/20 -top-20 -right-20 blur-3xl" />
+            <div className="absolute h-40 w-40 rounded-full bg-blue-600/20 -bottom-20 -left-20 blur-3xl" />
+            
+            {/* Main content with proper flex layout */}
+            <div className="flex-1 flex flex-col items-center justify-center w-full pt-16">
+                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 mb-8">
+                    Create Your Agent
+                </h1>
+                <div className="text-xl font-bold text-neutral-400">Tell us what you want your agent to do below</div>
             </div>
-        </section>
-    </div>
-  )
+            
+            {/* ChatBox container with fixed height and proper positioning */}
+            <div className="w-full max-w-3xl px-4 mb-8">
+                <ChatBox
+                    messages={messages}
+                    currMessage={currMessage}
+                    onSubmit={sendMessage}
+                    loading={isGenerating}
+                />
+            </div>
+        </div>
+    )
 }
