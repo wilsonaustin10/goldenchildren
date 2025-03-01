@@ -297,7 +297,7 @@ async def generate_browser_use(request: Request):
         # Parse the request body
         data = await request.json()
         action_description = data.get("action_description", "")
-        
+        print("ACTION DESCRIPTION", action_description)
         if not action_description:
             raise HTTPException(status_code=400, detail="Action description is required")
         

@@ -64,7 +64,7 @@ export function useChatbot() {
         }
     }, [error]);
     
-    const sendMessage = async (message: string) => {
+    const sendMessage = async (message: string, type?: string) => {
         try {
             // Add user message to the chat
             setMessages((prev) => [...prev, { text: message, sender: Sender.USER }]);
@@ -80,13 +80,15 @@ export function useChatbot() {
                 
                 // Send the message via WebSocket
                 sendChatMessage(message, history);
-            } else {
+            } 
+            
+            if (type == "browser-use") {
+                console.log("browser-use", message)
                 // Fallback to HTTP if WebSocket is not connected
-                const res = await fetch(`${API_BASE_URL}/chat/browser-use`, {
+                const res = await fetch(`${API_BASE_URL}/api/browser-use`, {
                     method: "POST",
                     body: JSON.stringify({ 
-                        message: message,
-                        history: messages
+                        action_description: message,
                     }),
                     headers: {
                         'Accept': "application/json",

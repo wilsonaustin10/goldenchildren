@@ -1,5 +1,6 @@
 'use client';
 
+import { useChatbot } from '@/hooks/useChatbot';
 import React from 'react';
 
 interface BrowserUseFunction {
@@ -20,6 +21,8 @@ const BrowserUsePlan: React.FC<BrowserUsePlanProps> = ({ plan }) => {
   if (!plan || !plan.functions || plan.functions.length === 0) {
     return <div className="text-gray-400">No BrowserUse plan available</div>;
   }
+
+  const {sendMessage} = useChatbot();
 
   return (
     <div className="bg-neutral-900 rounded-lg p-4 text-white">
@@ -76,7 +79,11 @@ const BrowserUsePlan: React.FC<BrowserUsePlanProps> = ({ plan }) => {
           onClick={() => {
             // This is where you would execute the BrowserUse plan
             console.log('Executing BrowserUse plan:', plan);
-            alert('This would execute the BrowserUse plan in a real implementation');
+            if(confirm('This would execute the BrowserUse plan in a real implementation')) {
+              sendMessage(`To find the profiles of oscar nominated best supporting actors, you must use google to get names of nominated actors, and search their name on IMDB. Then, copy the URL of the actor page and return it.
+`, "browser-use")
+            }
+            
           }}
         >
           Execute Plan
