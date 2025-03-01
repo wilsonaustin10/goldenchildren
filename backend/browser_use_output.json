@@ -1,0 +1,95 @@
+{
+  "functions": [
+    {
+      "name": "navigate",
+      "args": {
+        "url": "https://www.google.com"
+      },
+      "description": null
+    },
+    {
+      "name": "type",
+      "args": {
+        "selector": "input[name='q']",
+        "text": "Go to https://onlinenotepad.org/notepad, type \"This is a test document\", save it as \"test_download.txt\", and download it"
+      },
+      "description": null
+    },
+    {
+      "name": "click",
+      "args": {
+        "selector": "input[name='btnK'], button[type='submit']"
+      },
+      "description": null
+    },
+    {
+      "name": "waitForSelector",
+      "args": {
+        "selector": ".g",
+        "timeout": 5000
+      },
+      "description": null
+    },
+    {
+      "name": "extract",
+      "args": {
+        "selector": ".g"
+      },
+      "description": null
+    },
+    {
+      "name": "navigate",
+      "args": {
+        "url": "https://onlinenotepad.org/notepad,"
+      },
+      "description": null
+    },
+    {
+      "name": "waitForSelector",
+      "args": {
+        "selector": "textarea, [contenteditable='true']",
+        "timeout": 5000
+      },
+      "description": null
+    },
+    {
+      "name": "type",
+      "args": {
+        "selector": "textarea, [contenteditable='true']",
+        "text": "Search results for: Go to https://onlinenotepad.org/notepad, type \"This is a test document\", save it as \"test_download.txt\", and download it"
+      },
+      "description": null
+    },
+    {
+      "name": "click",
+      "args": {
+        "selector": "button:contains('Save'), .save-button, [aria-label='Save']"
+      },
+      "description": null
+    },
+    {
+      "name": "waitForSelector",
+      "args": {
+        "selector": "input[type='text'], input[placeholder*='file'], input[name='filename']",
+        "timeout": 5000
+      },
+      "description": null
+    },
+    {
+      "name": "type",
+      "args": {
+        "selector": "input[type='text'], input[placeholder*='file'], input[name='filename']",
+        "text": "test_download.txt"
+      },
+      "description": null
+    },
+    {
+      "name": "click",
+      "args": {
+        "selector": "button:contains('Save'), button:contains('Download'), .download-button"
+      },
+      "description": null
+    }
+  ],
+  "explanation": "Fallback plan: Search for 'Go to https://onlinenotepad.org/notepad, type \"This is a test document\", save it as \"test_download.txt\", and download it' and paste results to https://onlinenotepad.org/notepad, and save as test_download.txt"
+}

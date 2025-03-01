@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket BrowserUse Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .panel {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 400px;
+            border: 1px solid #ddd;
+        }
+        .status {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .connected {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .disconnected {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket BrowserUse Test</h1>
+    
+    <div id="connectionStatus" class="status disconnected">
+        WebSocket: Disconnected
+    </div>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Direct BrowserUse</h2>
+            <textarea id="actionDescription" placeholder="Enter a browser action description (e.g., 'Go to Google and search for AI news')"></textarea>
+            <button id="sendAction">Generate Function Calls</button>
+            <h3>Response:</h3>
+            <pre id="actionResponse">No response yet</pre>
+        </div>
+        
+        <div class="panel">
+            <h2>Chat with BrowserUse</h2>
+            <textarea id="chatMessage" placeholder="Enter a chat message (e.g., 'I want to search for AI news on Google')"></textarea>
+            <button id="sendChat">Send Message</button>
+            <h3>Response:</h3>
+            <pre id="chatResponse">No response yet</pre>
+        </div>
+    </div>
+    
+    <script>
+        // Client ID for WebSocket connection
+        const clientId = 'test-client-' + Math.random().toString(36).substring(2, 15);
+        let socket = null;
+        let chatHistory = [];
+        
+        // Connect to WebSocket
+        function connectWebSocket() {
+            const statusElement = document.getElementById('connectionStatus');
+            
+            // Close existing connection if any
+            if (socket) {
+                socket.close();
+            }
+            
+            // Create new WebSocket connection
+            socket = new WebSocket(`ws://localhost:8000/ws/${clientId}`);
+            
+            // Connection opened
+            socket.addEventListener('open', (event) => {
+                console.log('WebSocket connection established');
+                statusElement.textContent = 'WebSocket: Connected';
+                statusElement.className = 'status connected';
+            });
+            
+            // Listen for messages
+            socket.addEventListener('message', (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received message:', data);
+                
+                if (data.type === 'browser_use_plan') {
+                    // Handle BrowserUse plan response
+                    document.getElementById('actionResponse').textContent = JSON.stringify(data.plan, null, 2);
+                } else if (data.type === 'chat_response') {
+                    // Handle chat response
+                    const responseText = `Message: ${data.content}\n\nNeeds more info: ${data.needs_more_info}`;
+                    
+                    // Add browser use plan if available
+                    let fullResponse = responseText;
+                    if (data.browser_use_plan) {
+                        fullResponse += '\n\nBrowser Use Plan:\n' + JSON.stringify(data.browser_use_plan, null, 2);
+                    }
+                    
+                    document.getElementById('chatResponse').textContent = fullResponse;
+                    
+                    // Update chat history
+                    chatHistory.push({
+                        role: 'assistant',
+                        content: data.content
+                    });
+                } else if (data.type === 'error') {
+                    // Handle error
+                    const errorElement = data.type === 'browser_use_plan' ? 
+                        document.getElementById('actionResponse') : 
+                        document.getElementById('chatResponse');
+                    
+                    errorElement.textContent = `Error: ${data.message}`;
+                }
+            });
+            
+            // Connection closed
+            socket.addEventListener('close', (event) => {
+                console.log('WebSocket connection closed');
+                statusElement.textContent = 'WebSocket: Disconnected';
+                statusElement.className = 'status disconnected';
+                
+                // Try to reconnect after 5 seconds
+                setTimeout(connectWebSocket, 5000);
+            });
+            
+            // Connection error
+            socket.addEventListener('error', (event) => {
+                console.error('WebSocket error:', event);
+                statusElement.textContent = 'WebSocket: Error';
+                statusElement.className = 'status disconnected';
+            });
+        }
+        
+        // Send action description for BrowserUse function calls
+        document.getElementById('sendAction').addEventListener('click', () => {
+            const actionDescription = document.getElementById('actionDescription').value.trim();
+            
+            if (!actionDescription) {
+                alert('Please enter an action description');
+                return;
+            }
+            
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                alert('WebSocket is not connected');
+                return;
+            }
+            
+            // Send the action description
+            socket.send(JSON.stringify({
+                type: 'browser_use',
+                action_description: actionDescription
+            }));
+            
+            // Clear the response area and show loading
+            document.getElementById('actionResponse').textContent = 'Loading...';
+        });
+        
+        // Send chat message
+        document.getElementById('sendChat').addEventListener('click', () => {
+            const message = document.getElementById('chatMessage').value.trim();
+            
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+            
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                alert('WebSocket is not connected');
+                return;
+            }
+            
+            // Add message to chat history
+            chatHistory.push({
+                role: 'user',
+                content: message
+            });
+            
+            // Send the chat message
+            socket.send(JSON.stringify({
+                type: 'chat',
+                message: message,
+                history: chatHistory
+            }));
+            
+            // Clear the response area and show loading
+            document.getElementById('chatResponse').textContent = 'Loading...';
+        });
+        
+        // Connect to WebSocket when the page loads
+        window.addEventListener('load', connectWebSocket);
+    </script>
+</body>
+</html> 
