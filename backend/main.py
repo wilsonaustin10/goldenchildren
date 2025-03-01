@@ -93,18 +93,35 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                     await websocket.send_json({"error": "Action description is required"})
                     continue
                 
+                # Extract max_steps if provided, default to 10
+                max_steps = message_data.get("max_steps", 10)
+                
+                # Ensure max_steps is an integer and within reasonable bounds
+                try:
+                    max_steps = int(max_steps)
+                    if max_steps < 1:
+                        max_steps = 1
+                    elif max_steps > 50:  # Set an upper limit for safety
+                        max_steps = 50
+                except (ValueError, TypeError):
+                    max_steps = 10  # Default if invalid
+                
                 # Generate BrowserUse function calls
                 try:
-                    plan = await default_generator.generate_function_calls(action_description)
+                    plan = await default_generator.generate_function_calls(action_description, max_steps=max_steps)
                     
                     # Generate step-by-step plan
                     step_by_step_plan = plan.get_step_by_step_plan()
                     
-                    # Send the plan back to the client
+                    # Generate action response
+                    action_response = plan.get_action_response()
+                    
+                    # Send the plan back to the client - only include the step-by-step plan, not the raw functions
                     await websocket.send_json({
                         "type": "browser_use_plan",
-                        "plan": plan.model_dump(),
-                        "step_by_step_plan": step_by_step_plan
+                        "step_by_step_plan": step_by_step_plan,
+                        "action_response": action_response,
+                        "max_steps_used": max_steps
                     })
                     
                 except Exception as e:
