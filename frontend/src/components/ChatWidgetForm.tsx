@@ -48,10 +48,10 @@ export default function ChatWidgetForm({onSubmit, isGenerating, messages}: P) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className='bg-gray-200 rounded'>
+        <div className='bg-neutral-500 rounded'>
           <FormTextInput
             containerClassName='grow' 
-            inputClassName="bg-gray-200"
+            inputClassName="bg-neutral-500"
             form={form} 
             multiline
             label={null}

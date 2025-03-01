@@ -32,8 +32,8 @@ export default function ChatBox(props: P) {
     }
 
     return (
-        <div className='w-full p-2 mb-4 h-full flex flex-col'>
-            <div className="flex flex-col space-y-2 py-2 min-h-[200px] h-full mb-4 bg-gray-400 rounded overflow-y-auto overflow-x-hidden">
+        <div className='w-full p-2 py-4 h-full flex flex-col'>
+            <div className="flex flex-col space-y-2 py-2 min-h-[200px] h-full mb-4 rounded overflow-y-auto overflow-x-hidden">
                 {messages.map((message, index) => (
                     <ChatMessage 
                     key={index}
