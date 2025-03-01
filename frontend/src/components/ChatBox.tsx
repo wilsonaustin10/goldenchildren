@@ -11,12 +11,13 @@ type P = {
     messages: Message[];
     currMessage: Message;
     onSubmit: (values: string) => void;
-    loading: boolean
+    loading: boolean;
+    className?: string;
 }
 
 export default function ChatBox(props: P) {
 
-    const {messages, currMessage, onSubmit: sendMessage, loading: isGenerating } = props;
+    const {messages, currMessage, onSubmit: sendMessage, loading: isGenerating, className } = props;
     const latestMessageRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -33,7 +34,7 @@ export default function ChatBox(props: P) {
     }
     return (
         <div className='w-full p-2 py-4 h-full flex flex-col'>
-            <div className="flex flex-col space-y-2 py-2 min-h-[200px] max-h-[400px] overflow-y h-full mb-4 rounded overflow-y-auto overflow-x-hidden">
+            <div className={`flex flex-col space-y-2 py-2 min-h-[200px] ${className ?? ""} overflow-y h-full mb-4 rounded overflow-y-auto overflow-x-hidden`}>
                 {messages.map((message, index) => (
                     <ChatMessage 
                     key={index}

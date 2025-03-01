@@ -32,6 +32,7 @@ export default function Home() {
             {/* ChatBox container with flex-grow */}
             <div className="w-full max-w-3xl px-4 pb-8 flex-grow">
                 <ChatBox
+                  className="max-h-[400px]"
                     messages={messages}
                     currMessage={currMessage}
                     onSubmit={sendMessage}

@@ -10,7 +10,6 @@ from langchain.chains import LLMChain
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import json
-from langchain_groq import ChatGroq
 from langchain.agents import create_tool_calling_agent
 from langgraph.prebuilt import create_react_agent
 

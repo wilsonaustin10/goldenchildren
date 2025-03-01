@@ -1,4 +1,5 @@
 from langchain_openai import ChatOpenAI
+import os
 from browser_use import Agent
 import asyncio
 from dotenv import load_dotenv
@@ -8,7 +9,7 @@ class BrowserUse:
     def __init__(self, open_ai_key: str):
         self.open_ai_key = open_ai_key
 
-    def InvokeBrowserAgent(self, task: str):
+    async def InvokeBrowserAgent(self, task: str):
         try:
             os.environ["OPENAI_API_KEY"] = self.openai_key
             agent = Agent(

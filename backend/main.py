@@ -3,6 +3,7 @@ FastAPI application for the orchestrator.
 """
 import os
 from typing import Dict, Any, List
+from browser.invoke_browser import BrowserUse
 from orchestrator.intent_detection import EXAMPLE_INTENTS, IntentDetector
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from sse_starlette.sse import EventSourceResponse
@@ -174,6 +175,17 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
         if client_id in active_connections:
             del active_connections[client_id]
 
+
+@app.post("/start-browser")
+async def start_browser(request: Request):
+    """
+    Starts browser use
+    """
+    prompt = await request.json()
+    browser_use = BrowserUse()
+    logger.info("Starting browser use")
+    browser_use.InvokeBrowserAgent(prompt)
+
 @app.post("/chat")
 async def chat_endpoint(request: Request):
     """
@@ -304,6 +316,7 @@ async def health_check():
     Health check endpoint.
     """
     return {"status": "healthy"}
+
 
 @app.get("/api/actions")
 async def list_actions():

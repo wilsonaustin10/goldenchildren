@@ -34,6 +34,8 @@ export default function Chat() {
           <BrowserUsePlan plan={browserUsePlan} />
         )}
       </div>
+      <div className="w-2/3 h-screen bg-neutral-900">
+      </div>
     </div>
   );
 }
