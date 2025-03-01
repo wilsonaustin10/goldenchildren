@@ -20,12 +20,14 @@ export default function ChatMessage({message}: P) {
           <Markdown remarkPlugins={[remarkGfm]}>
           {message.text}
           </Markdown>
-          {!message.needsMoreInfo 
+          
+          {/* {!message.needsMoreInfo  */}
+          {message.needsMoreInfo != null && !message.needsMoreInfo 
             ? <div>
                 <p>Is this what you meant?</p>
                 <div className="flex gap-x-2">
-                  <button className="rounded p-4 bg-neutral-600" type="button">Yes</button>
-                  <button className="rounded p-4 bg-neutral-600" type="button">No</button>
+                  <button className="cursor-pointer rounded px-4 py-2 bg-neutral-600 text-white" type="button">Yes</button>
+                  <button className="cursor-pointer rounded px-4 py-2 bg-neutral-600 text-white" type="button">No</button>
                 </div>
               </div>
             : null

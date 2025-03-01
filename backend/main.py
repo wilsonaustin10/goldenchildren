@@ -2,7 +2,7 @@
 FastAPI application for the orchestrator.
 """
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from browser.invoke_browser import BrowserUse
 from orchestrator.intent_detection import EXAMPLE_INTENTS, IntentDetector
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
@@ -59,7 +59,8 @@ class QueryResponse(BaseModel):
 
 class ChatMessage(BaseModel):
     message: str
-    history: List[Dict[str, str]]
+    history: List[Dict[str, Any]]
+    
 
 class ChatResponse(BaseModel):
     response: str

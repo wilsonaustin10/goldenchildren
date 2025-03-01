@@ -56,10 +56,11 @@ export function useChatbot() {
     // Handle WebSocket connection errors
     useEffect(() => {
         if (error) {
-            setMessages(prev => [...prev, { 
-                text: `Connection error: ${error}. Falling back to HTTP.`, 
-                sender: Sender.AI 
-            }]);
+            // setMessages(prev => [...prev, { 
+            //     text: `Connection error: ${error}. Falling back to HTTP.`, 
+            //     sender: Sender.AI 
+            // }]);
+            console.error(`Connection error: ${error}. Falling back to HTTP.`)
         }
     }, [error]);
     
@@ -93,10 +94,10 @@ export function useChatbot() {
                     }
                 });
                 
-                if (res.body === null) {
-                    throw new Error("Failed to get response from server");
-                }
-            if (res.body === null) return console.error("FAILED");
+            if (res.body === null) {
+                throw new Error("Failed to get response from server");
+            }
+
 
             const data = await res.json();
 
@@ -112,6 +113,11 @@ export function useChatbot() {
                     sender: Sender.AI,
                     needsMoreInfo: data.needs_more_info,
                 }]);
+
+
+                if (data.browser_use_plan) {
+                    setBrowserUsePlan(data.browser_use_plan);
+                }
             }
             
             // setMessages(prev => {
@@ -121,24 +127,6 @@ export function useChatbot() {
             // Reset the current mesage to hide it
             // setCurrMessage(_ => DEFAULT_MESSAGE);
 
-                const data = await res.json();
-                
-                if (data.needs_more_info) {
-                    setMessages(prev => [...prev, { 
-                        text: data.content, 
-                        sender: Sender.AI 
-                    }]);
-                } else {
-                    setMessages(prev => [...prev, { 
-                        text: data.content, 
-                        sender: Sender.AI 
-                    }]);
-                    
-                    if (data.browser_use_plan) {
-                        setBrowserUsePlan(data.browser_use_plan);
-                    }
-                }
-                
                 setIsGenerating(false);
             }
         } catch (ex) {
