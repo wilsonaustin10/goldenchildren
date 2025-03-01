@@ -3,6 +3,7 @@
 import { Message, Sender } from "@/types/Message";
 import ChatMessage from "./ChatMessage";
 import ChatWidgetForm, { formSchema } from "./ChatWidgetForm";
+import { FancyLoadingIndicator } from "./FancyLoadingIndicator";
 import { z } from "zod";
 import { useEffect, useRef } from "react";
 
@@ -30,10 +31,9 @@ export default function ChatBox(props: P) {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         sendMessage(values.text);
     }
-
     return (
         <div className='w-full p-2 py-4 h-full flex flex-col'>
-            <div className="flex flex-col space-y-2 py-2 min-h-[200px] h-full mb-4 rounded overflow-y-auto overflow-x-hidden">
+            <div className="flex flex-col space-y-2 py-2 min-h-[200px] max-h-[400px] overflow-y h-full mb-4 rounded overflow-y-auto overflow-x-hidden">
                 {messages.map((message, index) => (
                     <ChatMessage 
                     key={index}
@@ -42,6 +42,8 @@ export default function ChatBox(props: P) {
                 {/* Hide the currMessage if its text is null */}
                 {currMessage.text ? <ChatMessage 
                     message={currMessage}/> : null}
+                {/* Show loading indicator when generating and no current message */}
+                {isGenerating && !currMessage.text && <FancyLoadingIndicator />}
                 <div ref={latestMessageRef}></div> 
             </div>
             <ChatWidgetForm 

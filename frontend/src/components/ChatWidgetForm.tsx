@@ -51,7 +51,7 @@ export default function ChatWidgetForm({onSubmit, isGenerating, messages}: P) {
         <div className='bg-neutral-700 rounded'>
           <FormTextInput
             containerClassName='grow' 
-            inputClassName="bg-neutral-700"
+            inputClassName="bg-neutral-700 text-white"
             form={form} 
             multiline
             label={null}

@@ -2,12 +2,17 @@
 FastAPI application for the orchestrator.
 """
 import os
-from typing import Dict, Any
-from fastapi import FastAPI, HTTPException
+from typing import Dict, Any, List
+from orchestrator.intent_detection import EXAMPLE_INTENTS, IntentDetector
+from fastapi import FastAPI, HTTPException, Request
+from sse_starlette.sse import EventSourceResponse
+import json
+import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from loguru import logger
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 
 from orchestrator.orchestrator import Orchestrator, UserQuery
 
@@ -45,6 +50,49 @@ class QueryResponse(BaseModel):
     intent: str
     confidence: float
     result: Dict[str, Any]
+
+
+class ChatMessage(BaseModel):
+    message: str
+    history: List[Dict[str, str]]
+
+class ChatResponse(BaseModel):
+    response: str
+    needs_more_info: bool
+
+@app.post("/chat")
+async def chat_endpoint(request: Request):
+    """
+    Chat endpoint that processes a single message and returns a response.
+    """
+    try:
+        # Parse the request body
+        data = await request.json()
+        chat_input = ChatMessage(**data)
+        
+        # Initialize your models
+        intent_detector = IntentDetector(EXAMPLE_INTENTS)
+        target_llm = ChatOpenAI(
+            model_name="gpt-4o-mini",
+            temperature=0.7,
+        )
+
+        # Get response from intent detector
+        response = intent_detector._create_intent_collection_prompt(
+            message=chat_input.message,
+            history=chat_input.history,
+            target_llm=target_llm
+        )
+        
+        # Return the response
+        return {
+            "content": str(response),
+            "needs_more_info": isinstance(response, str) and "?" in response
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in chat endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/query", response_model=QueryResponse)
 async def process_query(request: QueryRequest):

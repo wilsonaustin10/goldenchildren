@@ -5,10 +5,14 @@ from typing import Dict, Any, List, Optional
 import os
 from loguru import logger
 from pydantic import BaseModel, Field
-from langchain.prompts import PromptTemplate
+from langchain.prompts import PromptTemplate, ChatPromptTemplate
 from langchain.chains import LLMChain
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+import json
+from langchain_groq import ChatGroq
+from langchain.agents import create_tool_calling_agent
+from langgraph.prebuilt import create_react_agent
 
 from .orchestrator import UserQuery, IntentResponse
 
@@ -55,6 +59,78 @@ class IntentDetector:
         )
         
         logger.info(f"Intent detector initialized with {len(intents)} intents")
+        
+        
+        llm = ChatGroq(
+            model="llama-3.3-70b-versatile",
+            temperature=0,
+        )
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", "You are a helpful assistant"),
+                ("human", "{input}"),
+                ("placeholder", "{agent_scratchpad}"),
+            ]
+        )
+        class forward_prompt(BaseModel):
+            a: int = Field(..., description="Finalized prompt to be sent to LLM")
+            
+        tools = [forward_prompt]
+        agent_executor = create_react_agent(llm, tools=tools)
+        self.agent_executor = agent_executor
+    
+    def _create_intent_collection_prompt(self, message: str, history: List[dict], target_llm) -> str:
+        """
+        Create a prompt based on message and history.
+        
+        Args:
+            message: Initial user message
+            history: Conversation history
+            target_llm: The target LLM to send the final prompt to
+        
+        Returns:
+            str: The generated prompt
+        """
+        try:
+            # Run the agent executor
+            response = self.agent_executor.invoke({
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": f"""
+                            History: {history}
+                            Current query: {message}
+                            
+                            Analyze this query and respond with a JSON:
+                            {{"needs_more_info": true, "question": "your clarifying question"}}
+                            OR
+                            {{"needs_more_info": false, "final_prompt": "your generated prompt"}}
+                            
+                            If the user asks for you to fill up the rest or to stop asking questions, just autocomplete the rest of the details because the user may just want to see an initial draft or how well you can perform
+                        """
+                    }
+                ]
+            })
+            
+            # Parse the response
+            try:
+                output = response["messages"][-1].content
+                result = json.loads(output)
+                print(result, result.get("needs_more_info", False))
+                if result.get("needs_more_info", False):
+                    return result["question"]
+                else:
+                    # Process with target LLM
+                    final_response = target_llm.invoke(result["final_prompt"])
+                    return final_response.content
+                    
+            except json.JSONDecodeError:
+                logger.error("Failed to parse agent response as JSON")
+                return "I encountered an error processing your request."
+                
+        except Exception as e:
+            logger.error(f"Error in intent collection: {str(e)}")
+            return f"Error: {str(e)}"
     
     def _create_intent_prompt(self) -> PromptTemplate:
         """

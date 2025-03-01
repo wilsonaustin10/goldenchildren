@@ -25,9 +25,12 @@ export function useChatbot() {
             setMessages((prev) => [...prev, { text: message, sender: Sender.USER }])
             setIsGenerating(_ => true);
             // Note: axios does not support streaming by default
-            const res = await fetch(`${API_BASE_URL}`, {
+            const res = await fetch(`${API_BASE_URL}/chat`, {
                 method: "POST",
-                body: JSON.stringify({ query: message }),
+                body: JSON.stringify({ 
+                    message: message,
+                    history: messages
+                }),
                 headers: {
                     'Accept': "text/event-stream,application/json",
                     "Content-Type": "application/json",
@@ -35,42 +38,27 @@ export function useChatbot() {
             })
             
             if (res.body === null) return console.error("FAILED");
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder("utf-8");
 
-            let aiMessage = "";
-            while (true) {
-                const { done, value, } = await reader.read();
-                console.log(done, value);
-                if (done) {
-                    break;
-                }
-                const decodedValue = decoder.decode(value);
-                aiMessage += decodedValue;
-
-                // We update it now so as to trigger a rerender
-                setCurrMessage((prev) => {
-                    return {
-                        sender: prev.sender,
-                        text: prev.text + decodedValue,
-                    }
-                });
-
+            const data = await res.json();
+            console.log(data);
+            if (data.needs_more_info) {
+                setMessages(prev => [...prev, { 
+                    text: data.content, 
+                    sender: Sender.AI 
+                }]);
+            } else {
+                setMessages(prev => [...prev, { 
+                    text: `${data.content}`, 
+                    sender: Sender.AI 
+                }]);
             }
             
-            if (aiMessage === "") {
-                // When endpoint fails, no error message is returned due to it being an
-                setMessages(prev => {                 
-                    return [...prev, { text: "Error: No response from server", sender: Sender.AI }];
-                })
-            } else {
-                setMessages(prev => {
-                        const currentMessage: Message = {text: aiMessage, sender: Sender.AI};
-                    return [...prev, currentMessage];
-                });
-            }
+            // setMessages(prev => {
+            //         const currentMessage: Message = {text: aiMessage, sender: Sender.AI};
+            //     return [...prev, currentMessage];
+            // });
             // Reset the current mesage to hide it
-            setCurrMessage(_ => DEFAULT_MESSAGE);
+            // setCurrMessage(_ => DEFAULT_MESSAGE);
 
         } catch (ex) {
             console.error('Error sending message:', ex)
