@@ -302,10 +302,16 @@ async def generate_browser_use(request: Request):
             raise HTTPException(status_code=400, detail="Action description is required")
         
         # Generate BrowserUse function calls
-        plan = await default_generator.generate_function_calls(action_description)
-        
+        # plan = await default_generator.generate_function_calls(action_description)
+        # print("TH EPLAN", plan)
+        plan = """
+Search for 2021 Oscar nominees for best supporting actor, then find IMDB profiles for 0 actors (limited to 10 steps)' action_description='To find the profiles of oscar nominated best supporting actors, you must use google to get names of nominated actors, and search their name on IMDB. Then, copy the URL of the actor page and return it.\n
+    """
+        browseruse = BrowserUse(open_ai_key=os.getenv("OPENAI_API_KEY"))
+        await browseruse.InvokeBrowserAgent(plan)
         # Return the plan
-        return plan.model_dump()
+        return None
+        # return plan.model_dump()
         
     except Exception as e:
         logger.error(f"Error generating BrowserUse function calls: {str(e)}")

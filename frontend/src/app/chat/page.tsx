@@ -29,10 +29,11 @@ export default function Chat() {
           loading={isGenerating}
         />
       </div>
-      <div className="w-2/3 h-screen bg-neutral-800 p-4 overflow-auto">
-        {browserUsePlan && (
+      <div className="w-1/3 h-screen bg-neutral-700">
           <BrowserUsePlan plan={browserUsePlan} />
-        )}
+      </div>
+      <div className="w-2/3 h-screen bg-neutral-800">
+        <iframe src="http://localhost:6080/vnc.html" className="w-full h-full" />
       </div>
     </div>
   );

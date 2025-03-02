@@ -286,15 +286,16 @@ class BrowserUseGenerator:
     Generator for BrowserUse function calls from plain English actions.
     """
     
-    def __init__(self, model_name: str = "gpt-4o"):
+    def __init__(self, model_name = "o3-mini"):
         """
         Initialize the BrowserUse function call generator.
         
         Args:
             model_name: Name of the LLM model to use
         """
+
         self.model_name = model_name
-        
+        logger.info("Using model: ", self.model_name)
         # Initialize LLM
         self.llm = ChatOpenAI(
             model_name=model_name,
@@ -314,232 +315,95 @@ class BrowserUseGenerator:
             PromptTemplate for generating BrowserUse function calls
         """
         # return ChatPromptTemplate.from_messages([
-        return  [("system", """You are a specialized AI that converts plain English action descriptions into BrowserUse function calls.
+        return  [("system", """You are an expert at converting plain English action descriptions into a sequence of BrowserUse function calls. 
             
-BrowserUse is a framework for browser automation that provides the following functions:
-
-1. navigate(url: string) - Navigate to a specific URL
-   Example: navigate("https://www.google.com")
-
-2. click(selector: string) - Click on an element matching the selector
-   Example: click("#search-button")
-
-3. type(selector: string, text: string) - Type text into an element matching the selector
-   Example: type("#search-input", "AI news")
-
-4. extract(selector: string) - Extract text content from elements matching the selector
-   Example: extract(".headline")
-
-5. wait(milliseconds: number) - Wait for a specified number of milliseconds
-   Example: wait(2000)
-
-6. waitForSelector(selector: string, timeout: number) - Wait for an element matching the selector to appear
-   Example: waitForSelector(".results", 5000)
-
-7. scrollTo(x: number, y: number) - Scroll to specific coordinates
-   Example: scrollTo(0, 500)
-
-8. scrollIntoView(selector: string) - Scroll until the element matching the selector is in view
-   Example: scrollIntoView("#comments-section")
-
-9. evaluate(functionString: string) - Evaluate a JavaScript function in the browser context
-   Example: evaluate("() => { return document.title; }")
-   IMPORTANT: When using evaluate, NEVER use "return document" directly. Instead, extract specific properties or use DOM methods.
-   CORRECT: evaluate("() => { return window.location.href; }")
-   INCORRECT: evaluate("() => { return document; }")
-
-Your task is to convert the user's plain English action descriptions into a sequence of BrowserUse function calls.
-Respond with a JSON object containing an array of function calls, where each function call has a 'name' and 'args' property.
-
-IMPORTANT RULES:
-1. You MUST return a valid JSON object with at least one function in the "functions" array.
-2. Each function MUST have a "name" and "args" property.
-3. The "args" property MUST be a valid JSON object.
-4. DO NOT include any JavaScript code outside of the JSON structure.
-5. When using the 'evaluate' function, make sure the JavaScript code is properly escaped as a string.
-6. NEVER use 'return document' in evaluate functions. Always extract specific properties or use DOM methods.
-7. If you're unsure about the exact selectors, make reasonable guesses based on common web patterns.
-8. For downloading or saving files, use click operations on appropriate buttons rather than evaluate.
-9. YOUR ENTIRE RESPONSE MUST BE A VALID JSON OBJECT. DO NOT INCLUDE ANY TEXT BEFORE OR AFTER THE JSON.
-10. For IMDB profiles, use navigate to go directly to the actor's page when possible (e.g., navigate("https://www.imdb.com/name/nm0000123/")).
-
-Example:
-User: "Go to Google, search for 'latest AI news', and extract the headlines"
-Response:
-{
-  "functions": [
-    {
-      "name": "navigate",
-      "args": {
-        "url": "https://www.google.com"
-      }
-    },
-    {
-      "name": "type",
-      "args": {
-        "selector": "input[name='q']",
-        "text": "latest AI news"
-      }
-    },
-    {
-      "name": "click",
-      "args": {
-        "selector": "input[name='btnK'], button[type='submit']"
-      }
-    },
-    {
-      "name": "waitForSelector",
-      "args": {
-        "selector": ".g",
-        "timeout": 5000
-      }
-    },
-    {
-      "name": "extract",
-      "args": {
-        "selector": ".g h3"
-      }
-    }
-  ],
-  "explanation": "This sequence navigates to Google, searches for 'latest AI news', waits for results to load, and extracts the headlines."
-}
-
-Example for saving a document:
-User: "Go to an online notepad, type 'Hello World', and save it as test.txt"
-Response:
-{
-  "functions": [
-    {
-      "name": "navigate",
-      "args": {
-        "url": "https://onlinenotepad.org/notepad"
-      }
-    },
-    {
-      "name": "waitForSelector",
-      "args": {
-        "selector": "textarea, [contenteditable='true']",
-        "timeout": 5000
-      }
-    },
-    {
-      "name": "type",
-      "args": {
-        "selector": "textarea, [contenteditable='true']",
-        "text": "Hello World"
-      }
-    },
-    {
-      "name": "click",
-      "args": {
-        "selector": "button:contains('Save'), .save-button, [aria-label='Save']"
-      }
-    },
-    {
-      "name": "waitForSelector",
-      "args": {
-        "selector": "input[type='text'], input[placeholder*='file'], input[name='filename']",
-        "timeout": 5000
-      }
-    },
-    {
-      "name": "type",
-      "args": {
-        "selector": "input[type='text'], input[placeholder*='file'], input[name='filename']",
-        "text": "test.txt"
-      }
-    },
-    {
-      "name": "click",
-      "args": {
-        "selector": "button:contains('Save'), button:contains('Download'), .download-button"
-      }
-    }
-  ],
-  "explanation": "This sequence navigates to an online notepad, types 'Hello World', saves the document, and names it test.txt."
-}
-
-Example for finding IMDB profiles:
-User: "Find IMDB profiles for the 2021 Oscar nominated actors for best supporting actor"
-Response:
-{
-  "functions": [
-    {
-      "name": "navigate",
-      "args": {
-        "url": "https://www.google.com"
-      }
-    },
-    {
-      "name": "type",
-      "args": {
-        "selector": "input[name='q']",
-        "text": "2021 Oscar nominees best supporting actor"
-      }
-    },
-    {
-      "name": "click",
-      "args": {
-        "selector": "input[name='btnK'], button[type='submit']"
-      }
-    },
-    {
-      "name": "waitForSelector",
-      "args": {
-        "selector": ".g",
-        "timeout": 5000
-      }
-    },
-    {
-      "name": "extract",
-      "args": {
-        "selector": ".g h3"
-      }
-    },
-    {
-      "name": "navigate",
-      "args": {
-        "url": "https://www.imdb.com/name/nm1363944/"
-      },
-      "description": "Daniel Kaluuya's IMDB profile"
-    },
-    {
-      "name": "navigate",
-      "args": {
-        "url": "https://www.imdb.com/name/nm1541953/"
-      },
-      "description": "Leslie Odom Jr.'s IMDB profile"
-    },
-    {
-      "name": "navigate",
-      "args": {
-        "url": "https://www.imdb.com/name/nm0705562/"
-      },
-      "description": "Paul Raci's IMDB profile"
-    },
-    {
-      "name": "navigate",
-      "args": {
-        "url": "https://www.imdb.com/name/nm0056187/"
-      },
-      "description": "Sacha Baron Cohen's IMDB profile"
-    },
-    {
-      "name": "navigate",
-      "args": {
-        "url": "https://www.imdb.com/name/nm3147751/"
-      },
-      "description": "Lakeith Stanfield's IMDB profile"
-    }
-  ],
-  "explanation": "This sequence searches for the 2021 Oscar nominees for Best Supporting Actor and navigates to each actor's IMDB profile."
-}
-
-Always use appropriate selectors based on common patterns for popular websites.
-
-Remember: Your response MUST be a valid JSON object with at least one function in the "functions" array. DO NOT include any text before or after the JSON.
-"""),
-            ("user", f"{action_description}")
+            # CRITICAL WARNING: NEVER RETURN ENTIRE BROWSER OBJECTS
+            The following will cause fatal errors because these objects cannot be serialized:
+            - NEVER use 'return document' in any evaluate function
+            - NEVER use 'return window' in any evaluate function
+            
+            CORRECT: evaluate("() => { return window.location.href; }")
+            CORRECT: evaluate("() => { return document.title; }")
+            CORRECT: evaluate("() => { return Array.from(document.querySelectorAll('h1')).map(el => el.textContent); }")
+            
+            INCORRECT: evaluate("() => { return document; }") - THIS WILL CAUSE AN ERROR
+            INCORRECT: evaluate("() => { return window; }") - THIS WILL CAUSE AN ERROR
+            
+            # Your Task
+            Convert the following plain English action description into a sequence of BrowserUse function calls.
+            
+            # IMPORTANT: MAXIMUM STEPS LIMIT
+            You MUST create a plan with AT MOST {max_steps} steps. This is a hard limit.
+            If the task requires more steps, you must simplify or combine steps to stay within this limit.
+            
+            # Action Description
+            {action_description}
+            
+            # Available BrowserUse Functions
+            - goto(url: string): Navigate to the specified URL
+            - click(selector: string): Click on the element matching the selector
+            - type(selector: string, text: string): Type the text into the element matching the selector
+            - evaluate(functionString: string): Evaluate the JavaScript function in the browser context
+            - waitForSelector(selector: string, options?: object): Wait for the element matching the selector to appear
+            - waitForNavigation(options?: object): Wait for the page to navigate
+            - screenshot(options?: object): Take a screenshot of the page
+            - scrollTo(x: number, y: number): Scroll to the specified coordinates
+            - hover(selector: string): Hover over the element matching the selector
+            - focus(selector: string): Focus on the element matching the selector
+            - select(selector: string, values: string[]): Select options in a dropdown
+            - waitForFunction(functionString: string, options?: object): Wait for the function to return true
+            
+            # Response Format
+            Respond with a JSON object containing:
+            1. An "explanation" field with a brief explanation of the approach
+            2. A "functions" array with the sequence of BrowserUse function calls (MAXIMUM {max_steps} FUNCTIONS)
+            
+            Each function call in the array should be an object with:
+            - "name": The name of the function
+            - "args": An object with the arguments for the function
+            - "description": A brief description of what this function call does
+            
+            # Example Response
+            ```json
+            {{
+              "explanation": "To search for 'climate change news' on Google, we need to navigate to Google, type the search term, and press Enter.",
+              "functions": [
+                {{
+                  "name": "goto",
+                  "args": {{
+                    "url": "https://www.google.com"
+                  }},
+                  "description": "Navigate to Google"
+                }},
+                {{
+                  "name": "type",
+                  "args": {{
+                    "selector": "input[name='q']",
+                    "text": "climate change news"
+                  }},
+                  "description": "Type search query"
+                }},
+                {{
+                  "name": "evaluate",
+                  "args": {{
+                    "functionString": "() => {{ document.querySelector('input[name=\\'q\\']').form.submit(); }}"
+                  }},
+                  "description": "Submit the search form"
+                }}
+              ]
+            }}
+            ```
+            
+            # Important Rules
+            1. Use the most efficient sequence of function calls to accomplish the task
+            2. Use appropriate selectors (CSS selectors, XPath) for targeting elements
+            3. Include proper waiting mechanisms (waitForSelector, waitForNavigation) when needed
+            4. NEVER use 'return document' or 'return window' in evaluate functions - these will cause errors
+            5. Always return valid JSON that can be parsed with JSON.parse()
+            6. Make sure all function calls have the correct arguments according to their definitions
+            7. NEVER EXCEED {max_steps} FUNCTION CALLS - this is a hard limit
+            
+            Now, convert the action description into BrowserUse function calls:""")
     ]
     
     async def generate_function_calls(self, action_description: str, max_steps: int = 10) -> BrowserUsePlan:
@@ -565,7 +429,7 @@ Remember: Your response MUST be a valid JSON object with at least one function i
             # Generate the function calls
             messages = self.prompt(action_description)
             response = await self.llm.ainvoke(
-                self.prompt.format(action_description=action_description, max_steps=max_steps)
+                messages
             )
             
             # Parse the response
@@ -720,7 +584,14 @@ Remember: Your response MUST be a valid JSON object with at least one function i
                     num_actors = min(requested_actors, max_actors)
                 except ValueError:
                     pass
-            
+            category = "best supporting actor"
+            if "lead" in action_lower or "leading" in action_lower or "best actor" in action_lower:
+                category = "best actor"
+            elif "supporting actress" in action_lower:
+                category = "best supporting actress"
+            elif "actress" in action_lower:
+                category = "best actress"
+            search_term = f"{year} Oscar nominees {category}"
             # Basic search functions (5 steps)
             functions = [
                 # Search for Oscar nominees

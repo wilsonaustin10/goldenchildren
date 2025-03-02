@@ -17,15 +17,57 @@ interface BrowserUsePlanProps {
   };
 }
 
-const BrowserUsePlan: React.FC<BrowserUsePlanProps> = ({ plan }) => {
+const BrowserUsePlan: React.FC<BrowserUsePlanProps> = ({  }) => {
+  const {sendMessage} = useChatbot()
+
+  const plan: {
+    functions: BrowserUseFunction[];
+    explanation?: string | null;
+    action_description?: string | null;
+  } = {
+    functions: [
+      {
+        name: "analyzeRecentAwards",
+        args: {
+          actorName: "string",
+          awardShow: "string",
+          year: "number",
+        },
+        description: "Analyze recent awards received by an actor or actress.",
+      },
+      {
+        name: "evaluateSocialMediaPresence",
+        args: {
+          actorName: "string",
+          platform: "string",
+          metrics: ["followers", "engagementRate", "growthRate"],
+        },
+        description:
+          "Evaluate an actor's social media presence based on engagement and follower growth.",
+      },
+      {
+        name: "assessFanFollowing",
+        args: {
+          actorName: "string",
+          platforms: ["Twitter", "Instagram", "TikTok", "YouTube"],
+          sentimentAnalysis: "boolean",
+        },
+        description:
+          "Assess the actor's fan following, including sentiment analysis of online discussions.",
+      },
+    ],
+    explanation:
+      "This agent identifies emerging actors and actresses by analyzing their recent awards, social media presence, and fan following.",
+    action_description:
+      "It gathers insights on industry trends and rising talent based on awards, engagement metrics, and audience sentiment.",
+  }
+  
   if (!plan || !plan.functions || plan.functions.length === 0) {
     return <div className="text-gray-400">No BrowserUse plan available</div>;
   }
 
-  const {sendMessage} = useChatbot();
-
   return (
-    <div className="bg-neutral-900 rounded-lg p-4 text-white">
+    <div className="bg-neutral-900 rounded-lg p-4 text-white max-h-[100vh] overflow-y-auto">
       <h2 className="text-xl font-bold mb-4">BrowserUse Plan</h2>
       
       {plan.action_description && (

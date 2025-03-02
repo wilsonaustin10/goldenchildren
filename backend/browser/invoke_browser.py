@@ -11,7 +11,7 @@ class BrowserUse:
 
     async def InvokeBrowserAgent(self, task: str):
         try:
-            os.environ["OPENAI_API_KEY"] = self.openai_key
+            os.environ["OPENAI_API_KEY"] = self.open_ai_key
             agent = Agent(
                 task=task,
                 llm=ChatOpenAI(model="gpt-4o"),
